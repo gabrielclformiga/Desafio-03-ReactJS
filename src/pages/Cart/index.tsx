@@ -17,17 +17,6 @@ interface Product {
   amount: number;
 }
 
-// cart: [
-//   {
-//     amount: 1,
-//     id: 2,
-//     image:
-//       'https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis2.jpg',
-//     price: 139.9,
-//     title: 'Tênis VR Caminhada Confortável Detalhes Couro Masculino',
-//   },
-// ]
-
 const Cart = (): JSX.Element => {
   const { cart, removeProduct, updateProductAmount } = useCart();
 
@@ -45,14 +34,6 @@ const Cart = (): JSX.Element => {
   }, 0));
 
   function handleProductIncrement(product: Product) {
-    //   {
-    //     amount: 1,
-    //     id: 2,
-    //     image:
-    //       'https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis2.jpg',
-    //     price: 139.9,
-    //     title: 'Tênis VR Caminhada Confortável Detalhes Couro Masculino',
-    //   }
     const productAmount = product.amount + 1;
 
     updateProductAmount({amount: productAmount, productId: product.id});

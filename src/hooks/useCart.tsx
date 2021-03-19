@@ -34,36 +34,50 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const addProduct = async (productId: number) => {
     try {
-      const { data: productFromStock } = await api.get(`stock/${productId}`);
+      const { data: productFromStock } = await api.get<Stock>(`stock/${productId}`);
 
-      const uptadedCart = [...cart];
+      let updatedCart = [...cart];
 
-      const productInCart = uptadedCart.find((product) => product.id === productId);
+      const productInCart = updatedCart.find((product) => product.id === productId);
 
       if (!productInCart) {
         const { data: productFromProducts } = await api.get<Product>(`products/${productId}`);
 
-        uptadedCart.push({...productFromProducts, amount: 1});
+        updatedCart.push({...productFromProducts, amount: 1});
 
-        setCart(uptadedCart);
+        setCart(updatedCart);
 
         localStorage.setItem(
           '@RocketShoes:cart',
-          JSON.stringify(uptadedCart)
+          JSON.stringify(updatedCart)
         );
 
         return;
-      }
+      } 
 
       if (productFromStock.amount > productInCart.amount) {
 
-        uptadedCart.push({...productInCart, amount: productInCart.amount + 1});
+        // uptadedCart.push({...productInCart, amount: productInCart.amount + 1});
 
-        setCart(uptadedCart);
+        // a forma de cima cria um elemento a mais no carrinho, ao invés de apenas modificar
+
+        // for (let product of updatedCart) {
+        //   if (product.id === productId) {
+        //     product.amount += 1;
+        //   }
+        // }
+
+        updatedCart = updatedCart.map(product => {
+          return product.id === productId ?
+          {...product, amount: product.amount + 1}
+          : product
+        });
+
+        setCart(updatedCart);
 
         localStorage.setItem(
           '@RocketShoes:cart',
-          JSON.stringify(uptadedCart)
+          JSON.stringify(updatedCart)
         );
       } else {
         toast.error("Quantidade solicitada fora de estoque");
@@ -76,22 +90,21 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
 
   const removeProduct = (productId: number) => {
     try {
-      // TODO
-      const uptadedCart = [...cart];
+      const updatedCart = [...cart];
 
-      const cartProductIndex = uptadedCart.findIndex(product => product.id === productId);
+      const cartProductIndex = updatedCart.findIndex(product => product.id === productId);
 
-      const productInCart = uptadedCart[cartProductIndex];
+      const productInCart = updatedCart[cartProductIndex];
 
       if (!productInCart) {
         throw new Error;
       }
 
-      uptadedCart.splice(cartProductIndex, 1);
+      updatedCart.splice(cartProductIndex, 1);
 
-      setCart(uptadedCart);
+      setCart(updatedCart);
 
-      localStorage.setItem('@RocketShoes:cart', JSON.stringify(uptadedCart));
+      localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart));
     } catch(error) {
       toast.error("Erro na remoção do produto");
     }
@@ -102,28 +115,24 @@ export function CartProvider({ children }: CartProviderProps): JSX.Element {
     amount,
   }: UpdateProductAmount) => {
     try {
-      const { data: stockProduct } = await api.get<Product>(`stock/${productId}`);
+      const { data: stockProduct } = await api.get<Stock>(`stock/${productId}`);
 
       if ((stockProduct.amount < amount) || (amount < 1)) {
         toast.error("Quantidade solicitada fora de estoque");
         return;
       }
 
-      let uptadedCart = [...cart];
+      let updatedCart = [...cart];
 
-      uptadedCart = uptadedCart.map((product) => {
+      updatedCart = updatedCart.map((product) => {
         return product.id === productId ?
           { ...product, amount: amount }
           : product
       });
 
-      // [{"amount": 2, "id": 1, "image": "https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis1.jpg", "price": 179.9, "title": "Tênis de Caminhada Leve Confortável"}, {"amount": 1, "id": 2, "image": "https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis2.jpg", "price": 139.9, "title": "Tênis VR Caminhada Confortável Detalhes Couro Masculino"}]
+      setCart(updatedCart);
 
-      // [{"amount": 2, "id": 1, "image": "https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis1.jpg", "price": 179.9, "title": "Tênis de Caminhada Leve Confortável"}, {"amount": 0, "id": 2, "image": "https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis2.jpg", "price": 139.9, "title": "Tênis VR Caminhada Confortável Detalhes Couro Masculino"}]
-
-      setCart(uptadedCart);
-
-      localStorage.setItem("@RocketShoes:cart", JSON.stringify(uptadedCart));
+      localStorage.setItem("@RocketShoes:cart", JSON.stringify(updatedCart));
     } catch {
       toast.error("Erro na alteração de quantidade do produto");
     }
